@@ -34,29 +34,18 @@ class Rule(ABC):
         after it was skipped or if there was no recipe."""
         pass
 
+    # TODO is there a use case for this?
     #def on_failure(self, node):
     #    pass
 
 
 class TrivialRule(Rule):
+    """A trivial rule has no recipe: nothing needs to be done to build its target"""
     def recipe(self):
         raise NotImplemented
 
     def has_recipe(self):
         return False
-
-
-class FileRule(Rule):
-    """Base class for rules that produce a file."""
-    pass
-
-class DirectoryRule(FileRule):
-    """Class for rules that produce a directory"""
-
-    def timestamp(self):
-        # If the directory exists already, no need to remake it
-        # TODO make this `sys.maxsize` a GX constant?
-        return -sys.maxsize if self.tgt.path.is_dir() else None
 
 
 #class StaticRule(Rule):
@@ -80,27 +69,14 @@ class DirectoryRule(FileRule):
 #        super().__init__(filename, deps, recipe_function)
 
 
-class SourceRule(TrivialRule):
+class LeafRule(Rule):
     """Rule stating that the target has no dependencies (it is therefore a "leaf", i.e. a node
-    without successors in the dependency graph described by the rules) and that nothing needs to
-    be done in order to make it.
-    For example, a manually written source code file would correspond to a `SourceRule`."""
-
+    without successors in the dependency graph described by the rules)."""
     def deps(self):
         return []
 
 
-class SourceFileRule(SourceRule, FileRule):
-    """The target is a source file: no dependencies and no recipe"""
+class SourceRule(LeafRule, TrivialRule):
+    """The target has no dependencies and no recipe. For example, a manually written source code
+    file would correspond to a `SourceRule`."""
     pass
-
-
-#class PhonyTargetRule(Rule):
-#    """Base class for rules that do not produce a file. The targets are therefore "phony"."""
-#    pass
-
-
-#class GroupingRule(PhonyTargetRule, TrivialRule):
-#    """A rule with no recipe (trivial) and not corresponding to a file target (phony): its only
-#    purpose is to serve as a handle to a group of dependencies."""
-#    pass

@@ -6,9 +6,17 @@ from .dep_graph import DependencyGraph, Datedness, JobStatus
 
 
 class _GxJob(tp.Job):
-    def __init__(self, node):
-        super().__init__(node.rule.recipe)
-        self.node = node
+    def __init__(self, node, wd_path):
+        super().__init__(self._run)
+        self.node    = node
+        self.wd_path = wd_path
+
+    def _run(self):
+        # Change the cwd to the node's if required
+        if self.wd_path is not None:
+            os.chdir(str(self.wd_path))
+
+        self.node.rule.recipe()
 
 
 class GraphExecutor:
@@ -24,16 +32,15 @@ class GraphExecutor:
         self._nb_jobs_in_flight  = 0
         self._dep_graph          = DependencyGraph(rule_set)
         self._unbuilt_leaf_nodes = set()
-        self._working_dir        = working_dir
+        self._base_working_dir   = Path(working_dir)
         self._successful         = None
 
 
     def build(self, targets):
-        """Build the specified `targets`. Returns whether the build succeeded (no errors occurred).
-        Also changes the current directory to `self._working_dir` as a side-effect."""
+        """Build the specified `targets`. Returns whether the build succeeded (no errors
+        occurred)."""
 
-        os.chdir(self._working_dir)
-
+        original_cwd = os.getcwd()
         self._successful = True
 
         for tgt in targets:
@@ -53,6 +60,11 @@ class GraphExecutor:
             self._dequeue_job_results()
 
         self._thread_pool.stop()
+
+        # Reset the working dir
+        if self._cwd != original_cwd:
+            os.chdir(original_cwd)
+
         return self._successful
 
 
@@ -95,7 +107,14 @@ class GraphExecutor:
                     elif datedness is Datedness.OUT_OF_DATE:
                         print(f"Rebuilding out-of-date target {node.rule.tgt.id}")
 
-                    self._thread_pool.push_job(_GxJob(node))
+                    p = getattr(node.rule.tgt, "__wd_path", None)
+                    working_dir_path = (
+                             self._base_working_dir     if p is None
+                        else p                          if p.is_absolute()
+                        else self._base_working_dir / p
+                    )
+
+                    self._thread_pool.push_job(_GxJob(node, working_dir_path))
                     self._nb_jobs_in_flight += 1
 
 

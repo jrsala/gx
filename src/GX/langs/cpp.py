@@ -85,7 +85,7 @@ def cpp_ruleset_builder(SRC_DIR_PATH, BUILD_DIR_PATH):
 
 
     @rsb.generic
-    class LinkedArtifactRule(FileRule):
+    class LinkedArtifactRule(Rule):
         @staticmethod
         def matches(tgt):
             return isinstance(tgt, LinkedArtifactTarget)
@@ -112,7 +112,7 @@ def cpp_ruleset_builder(SRC_DIR_PATH, BUILD_DIR_PATH):
 
 
     @rsb.generic
-    class ObjectFileRule(FileRule):
+    class ObjectFileRule(Rule):
         @staticmethod
         def matches(tgt):
             return isinstance(tgt, ObjectFileTarget)
@@ -164,7 +164,7 @@ def cpp_ruleset_builder(SRC_DIR_PATH, BUILD_DIR_PATH):
 
 
     @rsb.generic
-    class CppSourceFileRule(SourceFileRule):
+    class CppSourceFileRule(SourceRule):
         @staticmethod
         def matches(tgt):
             return isinstance(tgt, SourceFileTarget)

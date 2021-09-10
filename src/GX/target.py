@@ -34,6 +34,28 @@ class Id:
 
 
 class _TargetMeta(ABCMeta):
+    """This metaclass replaces the `__init__` method of the classes it is applied to with one that
+    generates an `id` attribute of type `TargetID` for the initialized object using the object's
+    other attributes. This is done as follows:
+
+        * The `__init__` method of the class before modification by the metaclass is invoked
+          normally, potentially setting attributes of the object
+        * A dictionary of identifying data is built as follows: for each attribute `key` of the
+          object, if its value is of type `Id`:
+            * store the value wrapped by the `Id` value into the dictionary at key `key`
+            * replace attribute `key` of the object with the wrapped value (thus unwrapping the
+              `Id` "in place")
+        * finally, set the `id` attribute of the object to be a `TargetID` initialized with the
+          built dictionary
+
+    This allows the user to easily and flexibly define on a per-attribute basis, dynamically, which
+    attributes of the `Target` object should be treated as "identifying", and which others are
+    only there for implementation reasons, to serve some other purpose than identifying the target.
+
+    NOTE: for objects of classes of metaclass `_TargetMeta`, the behavior is undefined if the `id`
+    attribute is set by other than `_TargetMeta.__new__`.
+    """
+
     def __new__(metacls, clsname, bases, attrs):
         old_init = attrs.get("__init__", None)
 

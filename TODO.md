@@ -1,5 +1,5 @@
 * Build sub-directories containing scripts
-    - Support paths being expressed relatively to each directory's script)
+    - Support paths being expressed relatively to each directory's script
 * Proper async jobs
 * Optionally produce build manifests, then reload them to determine whether what we're building is different from what exists already at a build location
 * Improve tooling surrounding shell commands
@@ -14,3 +14,4 @@
     * -e --expand-only: do not build, just perform the initial expansion of target nodes. Useful with -vvv.
     * -l --list-targets: expand graph and list all targets
 * Unit tests
+* Test with older Python versions
